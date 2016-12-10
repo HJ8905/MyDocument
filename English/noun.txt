@@ -1,21 +1,31 @@
+==========名词分类====================
 1.普通名词 和集体名词(普通名词要体现出单复数）
   I Like dog(x) I like dogs (right)
    My family is large
    My family are all early risers.
-2. collective noun, common noun
-   e.g. 
-, common noun
+
    ex: spaceship, book, pencil (common noun)
        class, family, audience(collective noun)
+2.专有名词
        proper Noun: Bob, Smith, April, London（专有名词)
        第一个单词要大写，前面不加冠词, 但是下列专有名词要加The 
        The United States, The United Nations
-       物质名词：glass\wood\paper\butter\fruit
+3.物质名词
+       glass\wood\paper\butter\fruit
        woods: 森林、
        物质名词没有复数，它的复数形式是这样的：
        a loaf of bread, loaves of bread
        a cup of coffee, a sheet of paper, a spoonful of sugar
-       a handful of sand.
+       a handful of sand. a armful of wood 
    
-   My family is large.
-   My family are all early risers.
+3. 抽象名词：
+   beauty, honsty, love, patience, happinsess, music
+
+===============名词的数==================
+1. 词尾+s
+  dog-dogs 有声 +  有声读【z]/ book-books (无声+无声) 读[s]
+2.s sh ch x o + es
+   class-classes[iz] bus--buses dish --dishes 
+
+
+
