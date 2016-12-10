@@ -1,9 +1,19 @@
+<<<<<<< HEAD
 ==========名词分类====================
 1.普通名词 和集体名词(普通名词要体现出单复数）
   I Like dog(x) I like dogs (right)
    My family is large
    My family are all early risers.
 
+=======
+﻿1.普通名词 和集体名词(普通名词要体现出单复数)
+  I Like dog(x) I like dogs (right)
+   My family is large
+   My family are all early risers.
+2. collective noun, common nounqwewqeqwe
+   e.g. 
+, common noun
+>>>>>>> 87a1ef49158a589b27241d33ae8e55f7df38fc20
    ex: spaceship, book, pencil (common noun)
        class, family, audience(collective noun)
 2.专有名词
