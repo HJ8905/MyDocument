@@ -1,8 +1,8 @@
-<<<<<<< HEAD
+﻿<<<<<<< HEAD
 ==========名词分类====================
 1.普通名词 和集体名词(普通名词要体现出单复数）
   I Like dog(x) I like dogs (right)
-   My family is large
+   My family is large123
    My family are all early risers.
 
 =======
