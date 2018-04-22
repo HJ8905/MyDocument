@@ -1,0 +1,30 @@
+<Domain-List>
+	<Domain name="chatservercore">
+		<Included-Application-List>
+			<Included-Application name="ChatServerCore"/>
+        </Included-Application-List>
+	</Domain>
+	<Domain name="ent.comm100.com">
+		<Included-Application-List>
+			<Included-Application name="LiveChat"/>
+			<Included-Application name="LiveChatFunc"/>
+			<Included-Application name="LiveChatReport"/>
+        </Included-Application-List>
+	</Domain>
+</Domain-List>
+
+
+<ApplicationList>
+	<Application name="LiveChat">
+		<File>bin/Comm100.Framework.dll</File> <!--obfuscate-->
+		<File>bin/LiveChat.DataAccess.dll</File><!--obfuscate-->
+		<Directory>JS/Chatbot</Directory>
+	</Application>
+
+	<Application name="ChatServerCore">
+		<File>bin/Comm100.Framework.dll</File> <!--obfuscate-->
+		<File>bin/LiveChat.DataAccess.dll</File><!--obfuscate-->
+		<Directory>bin/LiveChat.Business.dll</Directory>
+	</Application>
+
+</ApplicationList>
