@@ -78,8 +78,8 @@
 
 #### 3.1 Site对应的chatserver实例发生故障,聊天被切换
 
-1. Agent Console 和Visitor Side 的大部分Request 都会返回`enumSystemNeedRecoverData`错误.
-   + 因为新的chatserver 不存在对应的`CurrentOperator`, 所以Agent Console除了登录以外的请求都会失败, 需要retry 直至数据被恢复.
+1. Agent Console 和Visitor Side 的Request 都会返回`enumSystemNeedRecoverData`错误.
+   + 因为新的chatserver 不存在对应的`CurrentOperator`, （请求里带的operatorId 在服务器端不存在**这个地方是不是还有遗漏?**）所以Agent Console除了登录以外的请求都会失败, 需要retry 直至数据被恢复。
    + 如果访客并不处于聊天状态, 相关请求是可以正常返回的(例如 request chat, page visitor, pre-chat 等), 如果切换时处于聊天状态，相关的request 也会收到`enumSystemNeedRecoverData` 并做retry 直至数据恢复。
   
 2. Agent Console 在`enumOperatorGetMessagesFormAllChats`接口恢复`CurrentOperator`,`Visitor`, `Chat`
@@ -103,4 +103,4 @@
 
 ### 3.3 OneMaxon
 
-为保证设计上的统一, 切换到Maxon服务器时的处理逻辑是一致的, 区别在于一个是通过ARR 来判断需要切换Chat Server 实例, 一个是通过Moderator 来确定需要切换到Maxon 的Chat Server 实例.
+（**这部分等ARR的情况定了再细化**）为保证设计上的统一, 切换到Maxon服务器时的处理逻辑是一致的, 区别在于一个是通过ARR 来判断需要切换Chat Server 实例, 一个是通过Moderator 来确定需要切换到Maxon 的Chat Server 实例.
