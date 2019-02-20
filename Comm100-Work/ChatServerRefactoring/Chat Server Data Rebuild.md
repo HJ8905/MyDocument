@@ -5,6 +5,8 @@
 
 新版本的chatserver将支持**Loading Blance**, chatserver通过集群的方式对外提供服务。某个具体站点的`Chat`均会根据算法被分配到的固定的chatserver实例上。
 如果某个chatserver实例发生故障这个实例上的chat将会被自动切换到另一个可用的实例上。为保障客户的业务不发生中断必须把相应的`CurrentOperator`、`CurrentVisitor`、`Chat` 在新的chatserver实例中进行恢复。
+chat保存的时候要注意GUID是否存在.
+**Agent 和Agent 聊天**
 
 ## 2. 总体思路
 
@@ -79,8 +81,9 @@
 #### 3.1 Site对应的chatserver实例发生故障,聊天被切换
 
 1. Agent Console 和Visitor Side 的Request 都会返回`enumSystemNeedRecoverData`错误.
-   + 因为新的chatserver 不存在对应的`CurrentOperator`, （请求里带的operatorId 在服务器端不存在**这个地方是不是还有遗漏?**）所以Agent Console除了登录以外的请求都会失败, 需要retry 直至数据被恢复。
+   + 因为新的chatserver 不存在对应的`CurrentOperator`, （请求里带的operatorId 在服务器端不存在, 但是Agent Console 传过来的token 经过校验又是合法的**这个地方是不是还有遗漏?**）所以Agent Console除了登录以外的请求都会失败, 需要retry 直至数据被恢复。
    + 如果访客并不处于聊天状态, 相关请求是可以正常返回的(例如 request chat, page visitor, pre-chat 等), 如果切换时处于聊天状态，相关的request 也会收到`enumSystemNeedRecoverData` 并做retry 直至数据恢复。
+   + Question **正在请求聊天的怎么处理?**
   
 2. Agent Console 在`enumOperatorGetMessagesFormAllChats`接口恢复`CurrentOperator`,`Visitor`, `Chat`
    + chatserver 收到`enumOperatorGetMessagesFormAllChats` 请求时如果发现如下几种情况均返回`enumSystemNeedRecoverData`错误 **关注一下这个**
@@ -93,8 +96,8 @@
 
 3. Visitor 在调用`enumVisitorHeartBeatForChat`接口时恢复`Chat`数据
    + chatserver 收到`enumVisitorHeartBeatForChat`请求时:
-     1. 对应的对应的`CurrentVisitor`和`Chat`不存在, 直接返回。
-     2. 对应的`CurrentVisitor`和`Chat`均存在,但是本地的`Chat.CurrentChatMessagesVersion`在服务器端不存在就返回`enumSystemNeedRecoverData`错误并等待访客端调用`enumVisitorRecoverChat`接口恢复`Chat`。
+     1. 对应的`CurrentVisitor`和`Chat`不存在, 直接返回 (等Agent Console 恢复)。
+     2. 对应的`CurrentVisitor`和`Chat`均存在,但是本地的`Chat.CurrentChatMessagesVersion`在服务器端不存在就返回`enumSystemNeedRecoverData`错误并调用`enumVisitorRecoverChat`接口恢复`Chat`。
      3. 版本正确, 正常执行相关操作.
 
 #### 3.2 Site对应的chatserver实例恢复正常,聊天被切回
@@ -103,4 +106,9 @@
 
 ### 3.3 OneMaxon
 
-（**这部分等ARR的情况定了再细化**）为保证设计上的统一, 切换到Maxon服务器时的处理逻辑是一致的, 区别在于一个是通过ARR 来判断需要切换Chat Server 实例, 一个是通过Moderator 来确定需要切换到Maxon 的Chat Server 实例.
+（**这部分等ARR的情况定了再细化**）
+
++ 为保证设计上的统一, 切换到Maxon服务器时的处理逻辑是一致的, chat server 端应该用同样的机制来判断是否需要恢复数据, 用公用的代码来恢复数据（否则代码要写2份，有问题的话要改2个地方）
++ 区别在于OneMaxon 是根据Moderator 返回的信息来确定要访问新的服务器, ARR 是请求直接被路由到新的服务器访客端或Agent Console 并不知道已经切换了服务器.
+
+ **Question 1.分布式认证应该不包括Maxon的机器,切换到maxon的机器需要重新登录吗?**
