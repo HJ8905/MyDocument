@@ -30,3 +30,23 @@
 
 ## 2. GotoMeeting
 
+### 2.1 现状
+
+GotoMeeting 应该是支持Maxon的(没有数据库表需要迁移, 账号密码是存在Agent Console 端的), 明天再确认一下.
+
+## 3. Salsforce
+
+### 3.1 现状
+
+ 手动模型的代码本身很复杂，一个聊天会涉及多个Agent, 如果按新的模式做改动, 开发和测试量比较大
+ 自动模式相对简单
+
+### 3.2 修改方案
+
++ 自动模式的Salesforce Object 可以通过Consumer 来延迟处理
++ 手动模式因为代码的改动量太大而且不是本次项目的重点, 暂时不改动,
+
++ 支持Maxon
+  1. Recovery 的时候Salesforce 的相关对象都要进行恢复
+  2. 副服务器要部署LiveChatIntegration
+  3. 同步回迁要同步如下2个表: t_livechat_salesforceFieldConfig, t_livechat_SalesforceIntegration
