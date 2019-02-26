@@ -112,3 +112,4 @@ chat保存的时候要注意GUID是否存在.
 + 区别在于OneMaxon 是根据Moderator 返回的信息来确定要访问新的服务器, ARR 是请求直接被路由到新的服务器访客端或Agent Console 并不知道已经切换了服务器.
 
  **Question 1.分布式认证应该不包括Maxon的机器,切换到maxon的机器需要重新登录吗?**
+ **所有状态都需要恢复吗? waif for chat, request chat 都需要吗?**
