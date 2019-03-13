@@ -11,7 +11,7 @@ chat保存的时候要注意GUID是否存在.
 ## 2. 总体思路
 
 + 聊天有3个关联对象: `CurrentOperator`(可能有多个)、`CurrentVisitor`、`Chat`, 只有这3个对象都已经在新的Chat Server 实例上完成恢复后聊天才可以继续进行, 恢复完成以前相关接口都会收到服务器的错误信息并做retry 直至数据恢复完成。
-+ Agent Console 的`Heartbeat`接口会恢复`CurrentOperator`、`CurrentVisitor`、`Chat` 3个对象, 访客端的`Heartbeat`接口只会恢复`Chat`对象。
++ Agent Console 的`Heartbeat`接口会恢复`CurrentOperator`、`CurrentVisitor`、`Chat` 3个对象, 访客端的`Heartbeat`接口只会恢复`Chat.ChatMessage`对象。
 + 一个聊天可能会有多个`CurrentOperator`参与, 不同的Agent Console 本地保存的`CurrentVisitor`和`Chat`对象可能存在版本差异, 为保证最终恢复的`CurrentVisitor`和`Chat`版本是最新的, 给`CurrentVisitor`对象添加`OffSet`属性, 给`Chat`对象添加`CurrentChatMessagesVersion`属性来标识版本, 只有本地版本比较新时才会覆盖服务器版本。
 + `CurrentOperator` 也添加`Offset`属性来标识版本。具体的的使用场景：
   1. Agent 先在chatserver A 聊天,  chatserver A 有对应的`CurrentOperator`对象。
@@ -57,7 +57,7 @@ chat保存的时候要注意GUID是否存在.
    //原有对象, 添加新属性.
    public class Chat
    {
-      public string CurrentChatMessagesVersion
+      public string chatVersion
       {
        return _chatMessages[_chatMessages - 1]._messageGuid;
       }
@@ -66,14 +66,9 @@ chat保存的时候要注意GUID是否存在.
    //原有对象, 添加新属性.
    public enum FrameworkErrorCode
    {
-      enumSystemNeedRecoverChat = 28,
+      enumSystemNeedRecoverChat = 40,
    }
 
-   //原有对象, 添加新属性.
-   public enum EnumChatAction
-   {
-      enumVisitorRecoverChat = 95,
-   }
 ```
 
 ### 3.2 系统流程
@@ -94,11 +89,68 @@ chat保存的时候要注意GUID是否存在.
    + Agent Console 收到`enumSystemNeedRecoverData`错误后立即调用 `enumOperatorRecoverChat`接口恢复数据（`Agent`->`Visitor`->`Chat`）,Agent Console会在本地添加一个全局变量`IsRecoveringChat`,在调用`enumOperatorRecoverChat`   接口的过程中`IsRecoveringChat`一直为`True`,只要这个变量是true,Agent Console 就不会再次调用`enumOperatorRecoverChat`接口。
    + 如果一个`Chat`涉及多个`CurrentOperator`，同一个`CurrentVisitor`和`Chat`可能会恢复多次, 第2次恢复时会再次比较`Offset`和`Chat.CurrentChatMessagesVersion`确保服务端恢复的是最新版本。
 
-3. Visitor 在调用`enumVisitorHeartBeatForChat`接口时恢复`Chat`数据
-   + chatserver 收到`enumVisitorHeartBeatForChat`请求时:
-     1. 对应的`CurrentVisitor`和`Chat`不存在, 直接返回 (等Agent Console 恢复)。
-     2. 对应的`CurrentVisitor`和`Chat`均存在,但是本地的`Chat.CurrentChatMessagesVersion`在服务器端不存在就返回`enumSystemNeedRecoverData`错误并调用`enumVisitorRecoverChat`接口恢复`Chat`。
+3. 访客端调用的和聊天相关的ChatServer接口都要传chatVersion 字段, chatVersion 就是访客端存储的最新一条`ChatMessage`的`_messageGuid`.
+   如果chatserver 返回`enumSystemNeedRecoverData`错误, 访客端进行retry操作直至数据恢复成功.
+   这些接口包括(红色代表不确定, 要和lynn和Roy确认一下):
+   + $\color{red}GetCustomVariable$
+   + $\color{red}setCustomVariable$
+   + $\color{red}SetPushConfig$
+   + $\color{red}SetIsNeedPush$
+   + SetLocation
+   + $\color{red}CheckDynamicCampaign, GetDynamicCampaign$
+   + $\color{red}CheckBan$
+   + $\color{red}CheckIfOnline$
+   + $\color{red}GetAgents$
+   + ChatBotSelectQuestion
+   + ChatBotAnswerHelpful
+   + SendFile
+   + VisitorHandlerBotForm
+   + GetVisitorInfo
+   + $\color{red}CheckBBSCode$
+   + $\color{red}GetVisitorInfo$
+   + $\color{red}RestoreChat$
+   + $\color{red}AgentMsgSeenByVisitor（这个好像不是chatting状态也能发）$ 
+   + $\color{red}Batch$
+   + $\color{red}CheckManullInvitation$
+   + $\color{red}CheckManullInvited$
+   + $\color{red}EmailTranscript (这个要重点讨论一下)$
+   + EndChat
+   + GetChatMessages
+   + SendChatMessages
+   + $\color{red}SocialLogin$
+   + $\color{red}SocialLogin$
+
+4. Visitor 在调用`getChatMessages`接口时如果收到`enumSystemNeedRecoverData`错误就调用`RecoverChat`接口恢复聊天消息
+   + chatserver 收到`getChatMessages`请求时:
+     1. 对应的`CurrentVisitor`或`Chat`不存在, 直接返回 (等Agent Console 恢复)。
+     2. 对应的`CurrentVisitor`和`Chat`均存在,但是本地的`chatVersion`在服务器端不存在就返回`enumSystemNeedRecoverData`。
      3. 版本正确, 正常执行相关操作.
+     4. `RecoverChat` 接口要传如下参数:
+
+```c#
+    //固定字段，其他访客端的接口也有这些字段
+    public int siteId;
+    public string chatGroup;
+    public string visitorGuid;
+    public string type; //type = recoverChat
+    public int campaignId;
+    public bool isMobile;
+
+    //其他字段
+    public int chatVersion;
+    public list<ChatMessage> chatMessages;
+
+   ChatMessage 包括如下字段 (和getChatMessages 接口chat server 返回的字段内容一样):
+   public class ChatMessage{
+      public int type;
+      public int id;
+      public string guid;
+      public long time;
+      public string translated;
+      ....
+   }
+
+```
 
 #### 3.2 Site对应的chatserver实例恢复正常,聊天被切回
 
